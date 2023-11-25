@@ -1,5 +1,7 @@
 import request from 'superagent';
 import { Output } from './interface-v2';
+import { AxiosError } from 'axios';
+
 
 export class Base {
   protected userAgent = '127.0.0.1'; // User-Agent
@@ -43,11 +45,16 @@ export class Base {
         ...result.body,
       };
     } catch (error) {
-      const err = JSON.parse(JSON.stringify(error));
+      if (error instanceof AxiosError) {
+        return {
+          error: {
+            status: error.response?.status,
+            data: error.response?.data,
+          }
+        }
+      }
       return {
-        status: err.status,
-        errRaw: err,
-        ...(err?.response?.text && JSON.parse(err?.response?.text)),
+        error: error
       };
     }
   }
